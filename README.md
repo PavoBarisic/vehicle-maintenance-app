@@ -31,8 +31,8 @@ An Android application for tracking vehicle maintenance, services and reminders,
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/PavoBarisic/CarMaintenanceApp.git
-cd CarMaintenanceApp
+git clone https://github.com/PavoBarisic/vehicle-maintenance-app.git
+cd vehicle-maintenance-app
 ```
 
 2. Create a Firebase project at `https://console.firebase.google.com`
