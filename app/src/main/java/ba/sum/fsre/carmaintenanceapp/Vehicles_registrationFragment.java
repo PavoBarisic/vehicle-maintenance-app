@@ -1,21 +1,37 @@
 package ba.sum.fsre.carmaintenanceapp;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 
 public class Vehicles_registrationFragment extends Fragment {
 
     private EditText vehicleType, manufacturer, model, modelYear, licensePlate, fuelType, mileage;
     private Button saveButton, cancelButton;
+    private ImageView addPhotoIcon;
+    private Uri selectedImageUri = null;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    selectedImageUri = result.getData().getData();
+                    addPhotoIcon.setImageURI(selectedImageUri);
+                }
+            });
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,6 +44,7 @@ public class Vehicles_registrationFragment extends Fragment {
         licensePlate = view.findViewById(R.id.license_plate);
         fuelType = view.findViewById(R.id.fuel_type);
         mileage = view.findViewById(R.id.mileage);
+        addPhotoIcon = view.findViewById(R.id.add_photo_icon);
 
         saveButton = view.findViewById(R.id.save_button);
         cancelButton = view.findViewById(R.id.cancel_button);
@@ -39,10 +56,18 @@ public class Vehicles_registrationFragment extends Fragment {
             }
         });
 
+        LinearLayout photoSection = view.findViewById(R.id.photo_section);
+        photoSection.setOnClickListener(v -> openGallery());
+
         saveButton.setOnClickListener(v -> saveVehicle());
         cancelButton.setOnClickListener(v -> cancelRegistration());
 
         return view;
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imagePickerLauncher.launch(intent);
     }
 
     private void saveVehicle() {
@@ -54,17 +79,13 @@ public class Vehicles_registrationFragment extends Fragment {
         String fuel = fuelType.getText().toString();
         String mileageValue = mileage.getText().toString();
 
-        // Validacija unosa
         if (type.isEmpty() || manu.isEmpty() || modelName.isEmpty() || year.isEmpty() || plate.isEmpty() || fuel.isEmpty() || mileageValue.isEmpty()) {
-            // Možeš prikazati poruku o grešci korisniku
             Toast.makeText(getContext(), "Molimo popunite sva polja!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Kreiranje novog objekta Vehicle
         Vehicle vehicle = new Vehicle(type, manu, modelName, year, plate, fuel, mileageValue);
 
-        // Dodavanje vozila u Firestore putem VehicleRepository
         VehicleRepository.getInstance().addVehicle(vehicle)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Vozilo je uspješno dodano!", Toast.LENGTH_SHORT).show();
@@ -76,7 +97,6 @@ public class Vehicles_registrationFragment extends Fragment {
                     Toast.makeText(getContext(), "Greška pri dodavanju vozila: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
-
 
     private void cancelRegistration() {
         if (getActivity() != null) {

@@ -6,13 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import com.google.firebase.auth.FirebaseAuth;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class AddVehicleFragment extends Fragment {
@@ -53,24 +54,23 @@ public class AddVehicleFragment extends Fragment {
             String fuelType = fuelTypeEditText.getText().toString();
             String mileage = mileageEditText.getText().toString();
 
-            // Kreiranje objekta vozila
-            Vehicle newVehicle = new Vehicle(vehicleType, manufacturer, model, modelYear, licensePlate, fuelType, mileage);
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-            // Dodavanje vozila u Firestore
+            Vehicle newVehicle = new Vehicle(vehicleType, manufacturer, model, modelYear, licensePlate, fuelType, mileage);
+            newVehicle.setUserId(userId);
+
             db.collection("vehicles")
-                    .add(newVehicle)
-                    .addOnSuccessListener(documentReference -> {
+                    .document(licensePlate)
+                    .set(newVehicle)
+                    .addOnSuccessListener(aVoid -> {
                         Toast.makeText(getContext(), "Vozilo je dodano!", Toast.LENGTH_SHORT).show();
-                        // Ažuriranje ViewModel-a ako želite
                         vehicleViewModel.addVehicle(newVehicle);
+                        getParentFragmentManager().popBackStack();
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Pogreška pri dodavanju vozila", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Pogreška pri dodavanju vozila: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
-
-            // Navigacija natrag u VehiclesFragment
-            getParentFragmentManager().popBackStack();
-        });
+        }); // <-- ovo nedostaje, zatvara save_Button listener
 
         cancel_Button.setOnClickListener(v -> {
             getParentFragmentManager().popBackStack();
@@ -79,3 +79,4 @@ public class AddVehicleFragment extends Fragment {
         return view;
     }
 }
+

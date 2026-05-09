@@ -107,7 +107,7 @@ public class VehicleDetailsFragment extends Fragment implements ServiceAdapter.O
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Handle error
+                    Toast.makeText(getContext(), "Greška pri dohvaćanju vozila: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -119,22 +119,19 @@ public class VehicleDetailsFragment extends Fragment implements ServiceAdapter.O
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        Log.d("ServiceData", "Number of documents fetched: " + queryDocumentSnapshots.size());
                         serviceList.clear();
                         for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                            Log.d("ServiceData", "Document data: " + documentSnapshot.getData());
                             Service service = documentSnapshot.toObject(Service.class);
                             if (service != null) {
+                                service.setDocumentId(documentSnapshot.getId());
                                 serviceList.add(service);
                             }
                         }
                         serviceAdapter.notifyDataSetChanged();
-                    } else {
-                        Log.d("ServiceData", "No documents found in the 'services' collection for vehicle.");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ServiceData", "Error fetching services: " + e.getMessage());
+                    Toast.makeText(getContext(), "Greška pri dohvaćanju servisa: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -164,13 +161,40 @@ public class VehicleDetailsFragment extends Fragment implements ServiceAdapter.O
 
         db.collection("vehicles").document(licensePlate).delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Vehicle deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Vozilo obrisano", Toast.LENGTH_SHORT).show();
                     if (getActivity() != null) {
                         getActivity().onBackPressed();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to delete vehicle", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Greška pri brisanju vozila: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void deleteService(Service service) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String licensePlate = licensePlateTextView.getText().toString();
+
+        db.collection("vehicles").document(licensePlate)
+                .collection("services")
+                .whereEqualTo("serviceDate", service.getServiceDate())
+                .whereEqualTo("serviceType", service.getServiceType())
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        doc.getReference().delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    serviceList.remove(service);
+                                    serviceAdapter.notifyDataSetChanged();
+                                    Toast.makeText(getContext(), "Servis obrisan", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(getContext(), "Neuspješno brisanje servisa: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Greška pri traženju servisa: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -199,32 +223,5 @@ public class VehicleDetailsFragment extends Fragment implements ServiceAdapter.O
                 .setPositiveButton("Da", (dialog, which) -> deleteService(service))
                 .setNegativeButton("Ne", (dialog, which) -> dialog.dismiss())
                 .show();
-    }
-
-    private void deleteService(Service service) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("vehicles").document(licensePlateTextView.getText().toString())
-                .collection("services").document(service.getServiceDate())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        db.collection("vehicles").document(licensePlateTextView.getText().toString())
-                                .collection("services").document(service.getServiceDate())
-                                .delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    serviceList.remove(service);
-                                    serviceAdapter.notifyDataSetChanged();
-                                    Toast.makeText(getContext(), "Servis obrisan", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e("FirestoreDelete", "Neuspješno brisanje servisa", e);
-                                    Toast.makeText(getContext(), "Neuspješno brisanje servisa", Toast.LENGTH_SHORT).show();
-                                });
-                    }
-                });
-
-
-
-
     }
 }

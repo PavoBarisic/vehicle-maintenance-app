@@ -1,6 +1,8 @@
 package ba.sum.fsre.carmaintenanceapp;
 import java.io.Serializable;
 public class Vehicle {
+
+    private String userId;
     private String vehicleType;
     private String manufacturer;
     private String model;
@@ -34,7 +36,8 @@ public class Vehicle {
         this.manufacturerAndModel = manufacturerAndModel;
         updateVehicleInfo();
     }
-
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public String getVehicleType() { return vehicleType; }
     public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; updateVehicleInfo(); }
 

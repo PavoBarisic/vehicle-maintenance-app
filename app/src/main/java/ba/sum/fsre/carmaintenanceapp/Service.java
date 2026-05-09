@@ -3,15 +3,16 @@ package ba.sum.fsre.carmaintenanceapp;
 import java.io.Serializable;
 
 public class Service implements Serializable {
+    private String documentId;
     private String serviceType;
     private String serviceDate;
     private String mileage;
     private String cost;
     private String notes;
-    private String licensePlate;  // Dodan licensePlate
+    private String licensePlate;
 
-    public Service() {
-    }
+    public Service() {}
+
     public Service(String serviceType, String serviceDate, String mileage, String cost, String notes, String licensePlate) {
         this.serviceType = serviceType;
         this.serviceDate = serviceDate;
@@ -21,7 +22,9 @@ public class Service implements Serializable {
         this.licensePlate = licensePlate;
     }
 
-    // Getteri i setteri
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
+
     public String getServiceType() { return serviceType; }
     public void setServiceType(String serviceType) { this.serviceType = serviceType; }
 

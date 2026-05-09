@@ -5,11 +5,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -56,8 +59,8 @@ public class RemindersFragment extends Fragment {
 
     private void fetchReminders() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("reminders")
-                .get()
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        db.collection("reminders").whereEqualTo("userID", userId).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     Log.d("RemindersFragment", "Documents fetched: " + queryDocumentSnapshots.size());
                     remindersList.clear();
@@ -70,6 +73,7 @@ public class RemindersFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.w("RemindersFragment", "Error getting documents.", e);
+                    Toast.makeText(getContext(), "Greška pri dohvaćanju podsjetnika: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

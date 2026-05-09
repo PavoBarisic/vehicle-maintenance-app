@@ -1,6 +1,7 @@
 package ba.sum.fsre.carmaintenanceapp;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class VehicleRepository {
@@ -19,9 +20,10 @@ public class VehicleRepository {
     }
 
     public Task<Void> addVehicle(Vehicle vehicle) {
-        // Pohrani novo vozilo u Firestore
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        vehicle.setUserId(userId);
         return db.collection("vehicles")
-                .document(vehicle.getLicensePlate()) // Koristi jedinstvenu registraciju kao ID
+                .document(vehicle.getLicensePlate())
                 .set(vehicle);
     }
 }

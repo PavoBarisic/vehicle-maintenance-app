@@ -56,11 +56,7 @@ public class EditServiceFragment extends Fragment {
                 getActivity().onBackPressed();
             }
         });
-        backButton.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
+
         if (getArguments() != null) {
             service = (Service) getArguments().getSerializable(ARG_SERVICE);
             if (service != null) {
@@ -90,7 +86,7 @@ public class EditServiceFragment extends Fragment {
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("vehicles").document(service.getLicensePlate())
-                .collection("services").document(service.getServiceDate())
+                .collection("services").document(service.getDocumentId())
                 .update(
                         "serviceType", service.getServiceType(),
                         "serviceDate", service.getServiceDate(),
@@ -104,7 +100,6 @@ public class EditServiceFragment extends Fragment {
                         getActivity().onBackPressed();
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Greška pri ažuriranju", Toast.LENGTH_SHORT).show());
-
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Greška pri ažuriranju: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -69,7 +71,8 @@ public class VehiclesFragment extends Fragment {
     @SuppressLint("NotifyDataSetChanged")
     private void fetchVehicles() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("vehicles").get()
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        db.collection("vehicles").whereEqualTo("userId", userId).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     vehicleList.clear();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -79,7 +82,7 @@ public class VehiclesFragment extends Fragment {
                     vehicleAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> {
-                    // Rukovanje greškama
+                    Toast.makeText(getContext(), "Greška pri dohvaćanju vozila: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }
